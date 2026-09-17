@@ -349,6 +349,40 @@ def test_jev_provider_requires_keys() -> None:
         raise AssertionError("attendu ConfigurationError")
 
 
+def test_auto_without_keys_stays_local(monkeypatch) -> None:
+    for key in (
+        "JEV_API_KEY",
+        "JEV_BASE_URL",
+        "GATEWAY_API_KEY",
+        "GATEWAY_BASE_URL",
+        "GATEWAY_MODEL",
+        "OPENROUTER_API_KEY",
+    ):
+        monkeypatch.delenv(key, raising=False)
+    router = ModelRouter(provider="auto")
+    assert router.provider_name == "local"
+    result = router.route(
+        task="Summarize this meeting and draft a follow-up email",
+        models=DEFAULT_MODELS,
+        prefer="cheapest",
+        scope="demo",
+    )
+    assert result.decision == "select"
+
+
+def test_auto_with_keys_uses_jev() -> None:
+    settings = Settings(
+        provider="auto",
+        jev_api_key="jev_test",
+        jev_base_url="http://127.0.0.1:9",
+        gateway_api_key="gw",
+        gateway_base_url="https://openrouter.ai/api/v1",
+        gateway_model="demo",
+    )
+    router = ModelRouter(provider="auto", settings=settings)
+    assert router.provider_name == "jev"
+
+
 def test_redaction() -> None:
     assert "[REDACTED_API_KEY]" in redact_text("token sk-abcdefghijklmnopqrstuvwxyz")
 

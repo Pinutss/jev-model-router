@@ -40,7 +40,7 @@ class ModelRouter:
 
     def __init__(
         self,
-        provider: str = "local",
+        provider: str | None = None,
         *,
         api_key: str | None = None,
         jev_base_url: str | None = None,
@@ -51,11 +51,11 @@ class ModelRouter:
         llm_prefer: str | None = None,
     ) -> None:
         env = settings or Settings.from_env()
-        name = provider.strip().lower()
+        requested = (provider if provider is not None else env.provider or "auto").strip().lower()
         use_env_defaults = settings is not None
-        self.provider_name = name
+        self.provider_name = requested
         self.settings = Settings(
-            provider=name,
+            provider=requested,
             jev_api_key=_coalesce(api_key, env.jev_api_key),
             jev_base_url=_coalesce(jev_base_url, env.jev_base_url),
             jev_model=env.jev_model,
@@ -67,7 +67,7 @@ class ModelRouter:
             llm_strategy=_coalesce(llm_prefer, env.llm_strategy) or "balanced",
             max_alternatives=env.max_alternatives,
             max_candidates=env.max_candidates,
-            redact_secrets=env.redact_secrets if use_env_defaults else name in {"jev", "custom"},
+            redact_secrets=env.redact_secrets,
             host=env.host,
             port=env.port,
             auth_token=env.auth_token,
@@ -75,13 +75,47 @@ class ModelRouter:
             w_gateway=env.w_gateway,
             w_relevance=env.w_relevance,
             request_timeout=env.request_timeout,
-            require_keys=name == "jev",
+            require_keys=False,
         )
-        self._apply_catalog(llm_prefer=llm_prefer)
+        if requested in {"", "auto"}:
+            name = "jev" if self._probe_jev(llm_prefer) else "local"
+        else:
+            name = requested
+            if name == "jev":
+                self._apply_catalog(llm_prefer=llm_prefer)
+        if not use_env_defaults:
+            self.settings = replace(
+                self.settings,
+                redact_secrets=name in {"jev", "custom"},
+                require_keys=name == "jev",
+            )
+        else:
+            self.settings = replace(self.settings, require_keys=name == "jev")
+        self.provider_name = name
+        self.settings = replace(self.settings, provider=name)
         self._validate()
 
+    def _gateway_ready(self) -> bool:
+        ollama = (self.settings.gateway_base_url or "").rstrip("/").endswith("11434/v1")
+        return bool(
+            self.settings.gateway_base_url
+            and self.settings.gateway_model
+            and (self.settings.gateway_api_key or ollama)
+        )
+
+    def _probe_jev(self, llm_prefer: str | None = None) -> bool:
+        if not (self.settings.jev_api_key and self.settings.jev_base_url):
+            return False
+        if self._gateway_ready():
+            return True
+        try:
+            self._apply_catalog(llm_prefer=llm_prefer)
+        except ConfigurationError:
+            return False
+        return self._gateway_ready()
+
     def _apply_catalog(self, llm_prefer: str | None = None) -> None:
-        if self.provider_name != "jev":
+        if self.provider_name not in {"jev", "auto", ""}:
             return
         settings = self.settings
         incomplete = not (

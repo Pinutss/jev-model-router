@@ -29,7 +29,7 @@ uv run jev-model demo
 uv run jev-model serve
 ```
 
-`provider=local` by default if you do not set keys. Docker:
+No agent and no LLM are required. `JEV_PROVIDER=auto` (the default) stays on the local heuristic. If JEV and a gateway are configured, they are used as the judge. Docker:
 
 ```bash
 docker compose up
@@ -118,7 +118,7 @@ No key in the HTTP or MCP body.
 cp .env.example .env
 ```
 
-`JEV_PROVIDER=jev` will not start if JEV or the resolved gateway is missing. A model without a resolvable key is rejected (`missing_key`), except Ollama.
+`JEV_PROVIDER=jev` will not start if JEV or the resolved gateway is missing. With `auto`, missing keys just keep the local heuristic. A model without a resolvable key is rejected (`missing_key`), except Ollama.
 
 ## HTTP
 

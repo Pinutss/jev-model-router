@@ -75,7 +75,7 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> Settings:
-        provider = (_env("JEV_PROVIDER", "local") or "local").strip().lower()
+        provider = (_env("JEV_PROVIDER", "auto") or "auto").strip().lower()
         return cls(
             provider=provider,
             jev_api_key=_env("JEV_API_KEY"),
