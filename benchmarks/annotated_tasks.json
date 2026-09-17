@@ -1,0 +1,40 @@
+{
+  "version": "0.1.0",
+  "provider": "local",
+  "notes": "Baseline locale deterministe. Distinguer de tout essai JEV reel.",
+  "cases": [
+    {
+      "id": "cheap",
+      "task": "Summarize this meeting quickly",
+      "prefer": "cheapest",
+      "scope": "demo",
+      "expected": "demo-cheap",
+      "expected_decision": "select"
+    },
+    {
+      "id": "quality",
+      "task": "Write a careful code review with step by step reasoning",
+      "prefer": "best",
+      "scope": "demo",
+      "expected": "demo-quality",
+      "expected_decision": "select"
+    },
+    {
+      "id": "no-candidate",
+      "task": "Analyze this satellite image",
+      "required_capabilities": ["quantum"],
+      "prefer": "balanced",
+      "scope": "demo",
+      "expected_decision": "abstain"
+    },
+    {
+      "id": "failed-fallback",
+      "task": "Write a careful code review with step by step reasoning",
+      "prefer": "best",
+      "failed_model_id": "demo-quality",
+      "scope": "demo",
+      "expected": "demo-balanced",
+      "expected_decision": "fallback"
+    }
+  ]
+}

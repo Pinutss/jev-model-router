@@ -1,0 +1,40 @@
+[project]
+name = "jev-model-router"
+version = "0.1.0"
+description = "Routage LLM sous contraintes de qualité, coût et latence, avec abstention et repli borné."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [{ name = "Pinuts" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Private :: Do Not Upload",
+]
+
+[project.scripts]
+jev-model = "jev_model_router.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jev_model_router"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/jev_model_router/api/demo.html" = "jev_model_router/api/demo.html"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

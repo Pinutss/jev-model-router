@@ -1,0 +1,8 @@
+* text=auto eol=lf
+
+*.html linguist-detectable=true linguist-language=HTML
+Dockerfile linguist-detectable=true linguist-language=Dockerfile
+*.yml linguist-detectable=true linguist-language=YAML
+*.yaml linguist-detectable=true linguist-language=YAML
+docker-compose.yml linguist-language=YAML
+docs/vision.md linguist-documentation=true

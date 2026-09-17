@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>jev-model-router</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0 auto;
+      max-width: 820px;
+      padding: 40px 20px 72px;
+      font: 15px/1.5 Inter, "Segoe UI", Arial, sans-serif;
+      background: #0e0f12;
+      color: #e8e6e1;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+    header { margin-bottom: 28px; }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+    }
+    .byline { color: #9a958c; font-size: 14px; margin: 0; }
+    .stack { color: #9a958c; font-size: 13px; margin: 10px 0 0; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #9a958c;
+      margin: 18px 0 6px;
+    }
+    textarea, input, select {
+      width: 100%;
+      box-sizing: border-box;
+      background: #17181c;
+      color: #e8e6e1;
+      border: 1px solid #2a2c33;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font: 14px/1.45 Inter, "Segoe UI", Arial, sans-serif;
+    }
+    textarea { min-height: 168px; resize: vertical; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    button {
+      margin-top: 18px;
+      background: #e8e6e1;
+      color: #111;
+      border: 0;
+      border-radius: 6px;
+      padding: 9px 14px;
+      font: 14px Inter, "Segoe UI", Arial, sans-serif;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.5; cursor: wait; }
+    .card {
+      margin-top: 22px;
+      border-top: 1px solid #2a2c33;
+      padding-top: 16px;
+    }
+    .card h2 {
+      font-size: 12px;
+      margin: 0 0 10px;
+      color: #9a958c;
+    }
+    .ok, .drop, .hold {
+      margin: 12px 0;
+      padding-left: 10px;
+    }
+    .ok { border-left: 2px solid #6faf7a; }
+    .hold { border-left: 2px solid #6a8cbf; }
+    .drop { border-left: 2px solid #b0893a; color: #c4c0b6; }
+    .meta { color: #9a958c; font-size: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; margin: 0; font-size: 13px; }
+    @media (max-width: 700px) {
+      .grid, .grid3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>jev-model-router</h1>
+    <p class="byline">Pinuts. Local demo, no keys. Routes LLMs, does not call them.</p>
+    <p class="stack">Python · HTTP · MCP · Docker · HTML</p>
+  </header>
+  <label for="task">Task</label>
+  <input id="task" value="Summarize this meeting and draft a follow-up email">
+  <div class="grid3">
+    <div>
+      <label for="prefer">Prefer</label>
+      <select id="prefer">
+        <option value="balanced" selected>balanced</option>
+        <option value="best">best</option>
+        <option value="cheapest">cheapest</option>
+        <option value="fastest">fastest</option>
+      </select>
+    </div>
+    <div>
+      <label for="minQuality">Min quality</label>
+      <input id="minQuality" type="number" min="0" max="1" step="0.05" value="0">
+    </div>
+    <div>
+      <label for="maxCost">Max cost</label>
+      <input id="maxCost" type="number" min="0" max="1" step="0.05" value="1">
+    </div>
+  </div>
+  <label for="catalog">Catalog (one per line, id | name | provider | model | capabilities | quality | cost | latency)</label>
+  <textarea id="catalog">demo-cheap | Demo Cheap | demo | demo-cheap | chat,json,summary | 0.52 | 0.08 | 0.28
+demo-quality | Demo Quality | demo | demo-quality | chat,tools,json,coding,reasoning | 0.96 | 0.82 | 0.48
+demo-fast | Demo Fast | demo | demo-fast | chat,json | 0.62 | 0.22 | 0.08
+demo-balanced | Demo Balanced | demo | demo-balanced | chat,tools,json | 0.84 | 0.36 | 0.30
+demo-vision | Demo Vision | demo | demo-vision | chat,vision,image | 0.80 | 0.48 | 0.36</textarea>
+  <button id="run" type="button">Route</button>
+  <div id="out"></div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    function parseList(value) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+    async function run() {
+      const button = $("run");
+      button.disabled = true;
+      $("out").innerHTML = "<p class='meta'>Working...</p>";
+      const models = $("catalog").value.split("\n").map((line) => {
+        const parts = line.split("|").map((part) => part.trim());
+        const [id, name, provider, model, capabilities, quality, cost, latency] = parts;
+        return {
+          id,
+          name: name || id,
+          provider: provider || "demo",
+          model: model || id,
+          capabilities: parseList(capabilities || ""),
+          quality: Number(quality || 0.7),
+          cost: Number(cost || 0.5),
+          latency: Number(latency || 0.5),
+          fallback_id: id === "demo-quality" || id === "demo-cheap" ? "demo-balanced" : "demo-cheap",
+          scope: "demo",
+        };
+      }).filter((row) => row.id);
+      try {
+        const response = await fetch("/v1/route", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            task: $("task").value,
+            models,
+            prefer: $("prefer").value,
+            min_quality: Number($("minQuality").value || 0),
+            max_cost: Number($("maxCost").value || 1),
+            scope: "demo",
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          $("out").innerHTML = `<div class="card"><pre>${escapeHtml(data.error || JSON.stringify(data))}</pre></div>`;
+          return;
+        }
+        const renderModel = (item, cls) => `
+          <div class="${cls}">
+            <strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.provider)}/${escapeHtml(item.model)}
+            <div class="meta">${item.score} · q ${item.quality} · c ${item.cost} · l ${item.latency} · ${(item.reasons || []).join(" · ")}</div>
+          </div>`;
+        const selected = data.selected
+          ? renderModel(data.selected, "ok")
+          : `<p class="meta">${escapeHtml(data.abstain_reason || "No model selected.")}</p>`;
+        const fallback = data.fallback ? renderModel(data.fallback, "hold") : "<p class='meta'>No fallback.</p>";
+        const rejected = (data.rejected || []).map((item) => `
+          <div class="drop"><strong>${escapeHtml(item.id)}</strong> · ${escapeHtml(item.reason)}</div>
+        `).join("") || "<p class='meta'>Nothing rejected.</p>";
+        $("out").innerHTML = `
+          <div class="card"><h2>Decision · ${escapeHtml(data.decision)}</h2>${selected}</div>
+          <div class="card"><h2>Fallback</h2>${fallback}</div>
+          <div class="card"><h2>Rejected</h2>${rejected}</div>`;
+      } catch (err) {
+        $("out").innerHTML = `<div class="card"><pre>${escapeHtml(String(err))}</pre></div>`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+    $("run").addEventListener("click", run);
+    run();
+  </script>
+</body>
+</html>

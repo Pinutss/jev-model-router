@@ -1,0 +1,50 @@
+{
+  "providers": {
+    "openrouter": {
+      "base_url": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY",
+      "models": [
+        {
+          "id": "anthropic/claude-sonnet-4",
+          "quality": 0.95,
+          "cost": 0.55,
+          "latency": 0.45,
+          "capabilities": ["chat", "tools", "coding"],
+          "context_window": 200000
+        },
+        {
+          "id": "openai/gpt-4o-mini",
+          "quality": 0.80,
+          "cost": 0.12,
+          "latency": 0.22,
+          "capabilities": ["chat", "json"],
+          "context_window": 128000
+        }
+      ]
+    },
+    "openai": {
+      "base_url": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "models": [
+        {
+          "id": "gpt-4o-mini",
+          "quality": 0.78,
+          "cost": 0.15,
+          "latency": 0.20
+        }
+      ]
+    },
+    "ollama": {
+      "base_url": "http://127.0.0.1:11434/v1",
+      "api_key_env": "OLLAMA_API_KEY",
+      "models": [
+        {
+          "id": "llama3.2",
+          "quality": 0.58,
+          "cost": 0.0,
+          "latency": 0.50
+        }
+      ]
+    }
+  }
+}
