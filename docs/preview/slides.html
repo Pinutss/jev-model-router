@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JEV Model Router</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #ff2a3c;
+      --text: #f4f4f5;
+      --muted: #8d9199;
+      --soft: #a7adb6;
+      --card: #101012;
+      --line: rgba(255,255,255,.08);
+      --green: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      background: #000;
+      color: var(--text);
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+      overflow: hidden;
+    }
+    .slide {
+      width: 1280px;
+      height: 720px;
+      display: none;
+      flex-direction: column;
+      padding: 40px 64px 34px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(760px 440px at 108% -10%, rgba(255,28,52,.58) 0%, rgba(255,28,52,.14) 36%, transparent 68%),
+        #000;
+    }
+    .slide.on { display: flex; }
+    .top { display: flex; justify-content: space-between; align-items: center; }
+    .kicker {
+      display: flex; align-items: center; gap: 12px;
+      color: var(--muted); font-size: 12px; letter-spacing: .16em;
+      font-weight: 500; text-transform: uppercase;
+    }
+    .kicker .num {
+      width: 28px; height: 28px; border: 1px solid #2c2c30; border-radius: 50%;
+      display: grid; place-items: center; font-size: 11px; letter-spacing: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 15px; }
+    .brand .dot { width: 7px; height: 7px; background: var(--red); border-radius: 50%; }
+    .brand .prod { color: var(--muted); font-size: 12px; letter-spacing: .14em; font-weight: 500; }
+    h1 { margin: 26px 0 0; font-size: 54px; line-height: 1.04; letter-spacing: -.036em; font-weight: 700; max-width: 680px; }
+    h1 em { color: var(--red); font-style: normal; }
+    .lead { margin: 14px 0 0; color: var(--soft); font-size: 17px; line-height: 1.45; max-width: 520px; }
+    .row { display: flex; align-items: center; gap: 14px; margin-top: 36px; }
+    .node, .panel, .step, .box, .tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+    .node { width: 168px; min-height: 132px; padding: 16px 14px 14px; text-align: center; }
+    .node .ico { width: 40px; height: 40px; margin: 0 auto 10px; border-radius: 12px; background: #17171a; display: grid; place-items: center; color: #fff; }
+    .node b { display: block; font-size: 13px; font-weight: 600; }
+    .node span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .arrow { color: #3c3c42; font-size: 22px; flex: 0 0 auto; }
+    .panel { width: 360px; padding: 16px 18px 12px; }
+    .panel h3 { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--muted); }
+    .list { display: grid; gap: 7px; }
+    .list i { display: flex; justify-content: space-between; align-items: center; font-style: normal; font-size: 13.5px; color: #d5d7dc; }
+    .ok { color: var(--green); font-size: 14px; }
+    .no { color: #5c6068; font-size: 14px; }
+    .warn {
+      margin-top: auto; display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; border-radius: 14px;
+      background: linear-gradient(90deg, rgba(255,42,60,.16), rgba(255,42,60,.05));
+      border: 1px solid rgba(255,42,60,.22);
+    }
+    .warn .bang { width: 28px; height: 28px; border-radius: 50%; background: var(--red); color: #fff; display: grid; place-items: center; font-weight: 700; flex: 0 0 auto; }
+    .warn b { display: block; font-size: 14px; }
+    .warn span { display: block; color: #c4c4c8; font-size: 13px; margin-top: 2px; }
+    .steps { display: flex; align-items: stretch; gap: 12px; margin-top: 42px; }
+    .step { flex: 1; padding: 18px 14px 16px; text-align: center; }
+    .step .ico { width: 36px; height: 36px; margin: 0 auto 12px; color: #fff; }
+    .step b { display: block; font-size: 14px; }
+    .step span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .jev {
+      flex: 1.15; background: #14080b; border: 1px solid #ff2a3c;
+      box-shadow: 0 0 0 1px rgba(255,42,60,.12), 0 18px 50px rgba(255,20,40,.28);
+      padding: 16px 12px 14px; text-align: center; border-radius: 16px;
+    }
+    .jev .mark { font-weight: 700; letter-spacing: .02em; }
+    .jev .mark i { display: inline-block; width: 7px; height: 7px; background: var(--red); border-radius: 50%; margin-left: 6px; }
+    .jev small { display: block; color: #c9c9ce; font-size: 12px; margin: 4px 0 12px; }
+    .jev .brain { color: var(--red); margin-bottom: 10px; }
+    .jev em { display: block; font-style: normal; color: #ff6b78; font-size: 11px; letter-spacing: .16em; font-weight: 600; line-height: 1.7; }
+    .split { display: flex; align-items: center; gap: 18px; margin-top: 22px; }
+    .box { flex: 1; padding: 14px 18px 10px; }
+    .box h3 { margin: 0 0 8px; font-size: 13px; color: var(--muted); font-weight: 500; }
+    .line { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
+    .line:first-of-type { border-top: 0; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .pill { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+    .pill.select { color: var(--green); }
+    .pill.fallback { color: #7ea2ff; }
+    .pill.reject { color: #c4a15a; }
+    .cube {
+      width: 96px; height: 96px; border-radius: 24px; background: #14080b;
+      border: 1px solid var(--red); box-shadow: 0 12px 36px rgba(255,20,40,.28);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; color: var(--red); font-weight: 700; font-size: 13px; flex: 0 0 auto;
+    }
+    .badge {
+      position: absolute; right: 64px; top: 118px;
+      background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+      padding: 8px 14px; font-size: 13px; color: var(--soft);
+    }
+    .note {
+      position: absolute; right: 86px; top: 126px; width: 240px;
+      font-family: Caveat, cursive; font-size: 28px; line-height: 1.15;
+      transform: rotate(-6deg); color: #ececee;
+    }
+    .note u { text-decoration: none; border-bottom: 2px solid var(--red); }
+    .grid2 { display: grid; grid-template-columns: 1fr 280px; gap: 16px; margin-top: 28px; }
+    .stack { display: grid; gap: 14px; }
+    .tile { padding: 16px 18px 14px; }
+    .tile h3 { margin: 0 0 14px; font-size: 14px; font-weight: 600; }
+    .icons { display: flex; flex-wrap: wrap; gap: 18px 22px; }
+    .icon { width: 72px; text-align: center; color: #d8d8dc; }
+    .icon .mark { width: 42px; height: 42px; margin: 0 auto 7px; border-radius: 12px; background: #17171a; display: grid; place-items: center; }
+    .icon b { display: block; font-size: 11px; font-weight: 500; color: var(--soft); }
+    .deploy { padding: 18px 18px 10px; }
+    .deploy h3 { margin: 0 0 8px; font-size: 14px; }
+    .dep { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-top: 1px solid var(--line); }
+    .dep:first-of-type { border-top: 0; }
+    .dep .mark { width: 28px; height: 28px; border-radius: 8px; background: #1a0a0d; color: var(--red); display: grid; place-items: center; flex: 0 0 auto; }
+    .dep b { display: block; font-size: 14px; }
+    .dep span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <section class="slide on" data-slide="01" data-file="01-problem.png">
+    <div class="top">
+      <div class="kicker"><span class="num">01</span> The problem</div>
+      <div class="brand">JEV<span class="dot"></span><span class="prod">MODEL ROUTER</span></div>
+    </div>
+    <h1>The default model<br>is <em>not enough.</em></h1>
+    <p class="lead">You have many LLMs. Cost, latency, and quality still collide on the same task.</p>
+    <div class="row">
+      <div class="node">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.2"/><path d="M5.2 19c1.3-3.2 3.7-4.8 6.8-4.8s5.5 1.6 6.8 4.8"/></svg></div>
+        <b>User task</b>
+        <span>Summarize the meeting and draft a follow-up</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+        <b>Model dump</b>
+        <span>Every LLM in the catalog</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="panel">
+        <h3>All models, no constraint</h3>
+        <div class="list">
+          <i>Demo Cheap <span class="ok">✓</span></i>
+          <i>Demo Quality <span class="no">✕</span></i>
+          <i>Demo Fast <span class="ok">✓</span></i>
+          <i>Demo Vision <span class="no">✕</span></i>
+          <i>Demo Balanced <span class="ok">✓</span></i>
+          <i>+ 4 more… <span class="no">✕</span></i>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node">
+        <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 4c2 2 2 4 0 6-2 2-2 4 0 6 2 2 2 4 0 6"/><path d="M12 4c-2 2-2 4 0 6 2 2 2 4 0 6-2 2-2 4 0 6"/></svg></div>
+        <b>LLM call</b>
+        <span>Wrong model still answers</span>
+      </div>
+    </div>
+    <div class="warn">
+      <div class="bang">!</div>
+      <div>
+        <b>A catalog is not a route.</b>
+        <span>You get extra cost, extra latency, and no safe fallback.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="02" data-file="02-solution.png">
+    <div class="top">
+      <div class="kicker"><span class="num">02</span> The solution</div>
+      <div class="brand">JEV<span class="dot"></span><span class="prod">MODEL ROUTER</span></div>
+    </div>
+    <h1>JEV routes the model<br>that <em>fits.</em></h1>
+    <p class="lead">JEV scores the catalog under quality, cost, and latency, then explains, abstains, or falls back once.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 19l4.2-8.4L12 14l2.6-3.8L19 19"/></svg></div>
+        <b>Your task</b>
+        <span>Summarize the meeting and draft a follow-up</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h6M9 12h6"/></svg></div>
+        <b>Model catalog</b>
+        <span>OpenRouter, OpenAI, Groq, Ollama</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="jev">
+        <div class="mark">JEV<i></i></div>
+        <small>Model Router</small>
+        <div class="brain"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 8a3 3 0 1 1 3-3 3.2 3.2 0 0 1 3 3c1.7.4 3 2 3 4s-1 3.4-2.4 4c.2.6.4 1.3.4 2 0 1.7-1.3 3-3 3h-2c-1.7 0-3-1.3-3-3 0-.7.1-1.4.4-2A4.3 4.3 0 0 1 6 12c0-2 1.3-3.6 3-4z"/><path d="M12 5v14"/></svg></div>
+        <em>ANALYZE</em>
+        <em>FILTER</em>
+        <em>SELECT</em>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 4v6c0 5-3.2 7.6-7 9-3.8-1.4-7-4-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <b>Selected model</b>
+        <span>Demo Cheap, reasons included</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step">
+        <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 8h8a4 4 0 0 1 0 8H9"/><path d="M8 5l-3 3 3 3"/></svg></div>
+        <b>Your app</b>
+        <span>You still call the LLM</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="03" data-file="03-constraints.png">
+    <div class="top">
+      <div class="kicker"><span class="num">03</span> Under constraints</div>
+      <div class="brand">JEV<span class="dot"></span><span class="prod">MODEL ROUTER</span></div>
+    </div>
+    <div class="badge">Prefer: cheapest · max cost 0.40</div>
+    <h1>Quality, cost, latency.<br><em>Bounded.</em></h1>
+    <p class="lead">JEV picks a model that meets the budget. One fallback hop. Abstain if none is safe. It does not generate the user text.</p>
+    <div class="split">
+      <div class="box">
+        <h3>Candidate models</h3>
+        <div class="line"><span>Demo Cheap</span><span class="meta">q .52 · c .08 · l .28</span></div>
+        <div class="line"><span>Demo Fast</span><span class="meta">q .62 · c .22 · l .08</span></div>
+        <div class="line"><span>Demo Balanced</span><span class="meta">q .84 · c .36 · l .30</span></div>
+        <div class="line"><span>Demo Quality</span><span class="meta">q .96 · c .82 · above max</span></div>
+      </div>
+      <div class="cube">JEV<span style="color:#ff2a3c">•</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 8a3 3 0 1 1 3-3 3.2 3.2 0 0 1 3 3c1.7.4 3 2 3 4s-1 3.4-2.4 4c.2.6.4 1.3.4 2 0 1.7-1.3 3-3 3h-2c-1.7 0-3-1.3-3-3 0-.7.1-1.4.4-2A4.3 4.3 0 0 1 6 12c0-2 1.3-3.6 3-4z"/><path d="M12 5v14"/></svg></div>
+      <div class="box">
+        <h3>Decision</h3>
+        <div class="line"><span>demo-cheap</span><span class="pill select">Select</span></div>
+        <div class="line"><span>demo-balanced</span><span class="pill fallback">Fallback</span></div>
+        <div class="line"><span>demo-quality</span><span class="pill reject">Above max cost</span></div>
+        <div class="line"><span>demo-vision</span><span class="pill reject">Out of task</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" data-slide="04" data-file="04-works-everywhere.png">
+    <div class="top">
+      <div class="kicker"><span class="num">04</span> Works everywhere</div>
+      <div class="brand">JEV<span class="dot"></span><span class="prod">MODEL ROUTER</span></div>
+    </div>
+    <h1>Built for every stack.<br><em>Made for real use.</em></h1>
+    <p class="lead">Use JEV with your favorite LLMs, interfaces, and infrastructure.</p>
+    <div class="note">Less cost.<br><u>The right model.</u></div>
+    <div class="grid2">
+      <div class="stack">
+        <div class="tile">
+          <h3>Works with your LLM</h3>
+          <div class="icons">
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M12 4c2 2 2 4 0 6-2 2-2 4 0 6 2 2 2 4 0 6"/><path d="M12 4c-2 2-2 4 0 6 2 2 2 4 0 6-2 2-2 4 0 6"/></svg></div><b>OpenAI</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97757" stroke-width="1.8"><path d="M12 4l2.2 5.2L20 11l-5.2 2.2L12 18.5l-2.8-5.3L4 11l5.8-1.8z"/></svg></div><b>Claude</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6ea8fe" stroke-width="1.6"><path d="M12 3l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"/></svg></div><b>Gemini</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.6"><path d="M5 15c3-8 11-8 14 0"/><path d="M8 8h8"/></svg></div><b>Groq</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><path d="M8 12h8"/></svg></div><b>OpenRouter</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e5e5e5" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg></div><b>Ollama</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff7000" stroke-width="1.6"><path d="M4 16l8-10 8 10z"/></svg></div><b>Mistral</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.6"><path d="M6 16V8h4l2 4 2-4h4v8"/></svg></div><b>Together</b></div>
+          </div>
+        </div>
+        <div class="tile">
+          <h3>Works with your interface</h3>
+          <div class="icons">
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="1.6"><path d="M7 16c2-6 8-6 10 0"/><path d="M9 8c.8-2 5.2-2 6 0"/></svg></div><b>Python</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M3 12h18"/></svg></div><b>HTTP</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.6"><rect x="4" y="8" width="16" height="10" rx="2"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></div><b>MCP</b></div>
+            <div class="icon"><div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="1.6"><path d="M4 16h16M6 16V9h12v7"/></svg></div><b>Docker</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="tile deploy">
+        <h3>Flexible deployment</h3>
+        <div class="dep"><div class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 16a6 6 0 0 1 1-11 6.2 6.2 0 0 1 11 3 4.5 4.5 0 0 1 1 9H6z"/></svg></div><div><b>JEV Cloud</b><span>Ready to use</span></div></div>
+        <div class="dep"><div class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 20h8"/></svg></div><div><b>Local</b><span>Run it on your machine</span></div></div>
+        <div class="dep"><div class="mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5v2M12 17v2M5 12h2M17 12h2"/></svg></div><div><b>Custom</b><span>Integrate in your stack</span></div></div>
+      </div>
+    </div>
+  </section>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const wanted = params.get("slide");
+    if (wanted) {
+      document.querySelectorAll(".slide").forEach((el) => {
+        el.classList.toggle("on", el.dataset.slide === wanted);
+      });
+    }
+  </script>
+</body>
+</html>

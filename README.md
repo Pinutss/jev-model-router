@@ -1,16 +1,25 @@
 # jev-model-router
 
-Routage LLM sous contraintes de qualité, coût et latence.
+Routes an LLM under quality, cost, and latency constraints.
 
-Auteur : [Pinuts](https://github.com/Pinutss). Licence MIT.
+Author: [Pinuts](https://github.com/Pinutss). MIT license.
 
-Fait partie de [JEV Labs](https://github.com/Pinutss/jev-labs).
+Part of [JEV Labs](https://github.com/Pinutss/jev-labs).
 
-Stack : Python 3.10+, HTTP, MCP stdio, Docker, HTML de démo.
+Stack: Python 3.10+, HTTP, MCP stdio, Docker, HTML demo.
 
-Après `jev-model serve` : [démo](http://127.0.0.1:8080/)
+After `jev-model serve`: [demo](http://127.0.0.1:8080/)
 
-## Local, sans clé
+<p>
+  <img src="docs/preview/01-problem.png" alt="The problem" width="49%">
+  <img src="docs/preview/02-solution.png" alt="The solution" width="49%">
+</p>
+<p>
+  <img src="docs/preview/03-constraints.png" alt="Quality, cost, latency" width="49%">
+  <img src="docs/preview/04-works-everywhere.png" alt="Works everywhere" width="49%">
+</p>
+
+## Local, no keys
 
 ```bash
 git clone https://github.com/Pinutss/jev-model-router
@@ -20,26 +29,70 @@ uv run jev-model demo
 uv run jev-model serve
 ```
 
-`provider=local` par défaut si tu ne mets pas de clés. Docker :
+`provider=local` by default if you do not set keys. Docker:
 
 ```bash
 docker compose up
 ```
 
-## Ce que fait le prototype
+## What the prototype does
 
-Le routeur choisit un modèle dans un catalogue (OpenRouter, OpenAI, Groq,
-Together, Fireworks, Mistral, Ollama, ou un fichier JSON). Il justifie,
-s'abstient s'il n'y a pas de candidat sûr, et n'autorise qu'un seul saut
-de repli.
+The router chooses a model from a catalog (OpenRouter, OpenAI, Groq, Together, Fireworks, Mistral, Ollama, or a JSON file). It explains the choice, abstains if no candidate is safe, and allows only one fallback hop.
 
-Il n'appelle pas le LLM pour générer le texte utilisateur, sauf le juge
-optionnel JEV quand `provider=jev`. En local, le score est déterministe.
+It does not call the LLM to generate user text, except the optional JEV judge when `provider=jev`. Local ranking is deterministic.
 
-Les capacités viennent uniquement du catalogue et des contraintes de
-l'appelant. La tâche ne peut pas en ajouter. Les clés restent dans
-l'environnement : jamais dans le corps HTTP ou MCP, jamais dans la
-réponse.
+Capabilities come only from the catalog and the caller constraints. The task cannot add them. Keys stay in the environment: never in the HTTP or MCP body, never in the response.
+
+If you pass `models` to `route()`, that list is the only catalog used. If you omit it, the public multi-LLM catalog is merged with the demo models.
+
+## Multi-LLM catalog
+
+`load_catalog()` merges presets, `JEV_MODELS_FILE`, and `JEV_LLM_<NAME>_*` overlays. `GET /v1/llms` and `jev-model llms` expose the public catalog (`has_key`, never the raw key).
+
+```bash
+uv run jev-model llms
+```
+
+JSON example: `examples/models.json`.
+
+## Hermes and OpenClaw
+
+Yes, locally. The MCP process does not need JEV or a gateway:
+
+```bash
+uv run jev-model mcp
+```
+
+One tool: `model_route`. Pass `task` and optionally `models`. Keys stay in the process environment, not in the call.
+
+**Hermes** (`~/.hermes/config.yaml`):
+
+```yaml
+mcp_servers:
+  jev-model:
+    command: uv
+    args: ["run", "--directory", "/path/to/jev-model-router", "jev-model", "mcp"]
+    env:
+      JEV_PROVIDER: local
+```
+
+**OpenClaw** (`~/.openclaw/openclaw.json`, or Settings > MCP > Stdio):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "jev-model": {
+        "command": "uv",
+        "args": ["run", "--directory", "/path/to/jev-model-router", "jev-model", "mcp"],
+        "env": { "JEV_PROVIDER": "local" }
+      }
+    }
+  }
+}
+```
+
+Copy-ready examples: `examples/hermes.yaml`, `examples/openclaw.json`.
 
 ## Python
 
@@ -55,73 +108,17 @@ result = ModelRouter(provider="local").route(
 print(result.decision, result.selected.id if result.selected else result.abstain_reason)
 ```
 
-## Catalogue multi-LLM
+## JEV + gateway (optional)
 
-`load_catalog()` fusionne presets, `JEV_MODELS_FILE` et les overlays
-`JEV_LLM_<NAME>_*`. `GET /v1/llms` et `jev-model llms` exposent le
-catalogue public (`has_key`, jamais la clé).
+If you wire the cloud later, two keys are enough: `JEV_API_KEY` / `JEV_BASE_URL`, and your gateway. If `GATEWAY_*` is incomplete, the multi-LLM catalog resolves the judge (`OPENROUTER_API_KEY`, `OPENAI_API_KEY`, and similar).
 
-```bash
-uv run jev-model llms
-```
-
-Exemple JSON : `examples/models.json`.
-
-## Hermes et OpenClaw
-
-Oui, en local. Le process MCP n'a pas besoin de JEV ni de gateway :
-
-```bash
-uv run jev-model mcp
-```
-
-Un tool : `model_route`. Tu lui passes `task` et éventuellement `models`.
-Tes clés restent dans l'environnement du process, pas dans l'appel.
-
-**Hermes** (`~/.hermes/config.yaml`) :
-
-```yaml
-mcp_servers:
-  jev-model:
-    command: uv
-    args: ["run", "--directory", "/chemin/vers/jev-model-router", "jev-model", "mcp"]
-    env:
-      JEV_PROVIDER: local
-```
-
-**OpenClaw** (`~/.openclaw/openclaw.json`, ou Settings > MCP > Stdio) :
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "jev-model": {
-        "command": "uv",
-        "args": ["run", "--directory", "/chemin/vers/jev-model-router", "jev-model", "mcp"],
-        "env": { "JEV_PROVIDER": "local" }
-      }
-    }
-  }
-}
-```
-
-Exemples prêts à copier : `examples/hermes.yaml`, `examples/openclaw.json`.
-
-## JEV + gateway (optionnel)
-
-Si tu branches le cloud plus tard, deux clés suffisent : `JEV_API_KEY` /
-`JEV_BASE_URL`, et ta gateway. Si `GATEWAY_*` est incomplet, le catalogue
-multi-LLM résout le juge (`OPENROUTER_API_KEY`, `OPENAI_API_KEY`, etc.).
-
-Pas de clé dans le corps HTTP ou MCP.
+No key in the HTTP or MCP body.
 
 ```bash
 cp .env.example .env
 ```
 
-`JEV_PROVIDER=jev` refuse de démarrer si JEV ou la gateway résolue
-manque. Un modèle sans clé résoluble est rejeté (`missing_key`), sauf
-Ollama.
+`JEV_PROVIDER=jev` will not start if JEV or the resolved gateway is missing. A model without a resolvable key is rejected (`missing_key`), except Ollama.
 
 ## HTTP
 
@@ -129,23 +126,18 @@ Ollama.
 uv run jev-model serve
 ```
 
-`GET /`, `/demo`, `/healthz`, `/v1/llms`. `POST /v1/route`. Bind
-`127.0.0.1`. Le body ne contient pas de clés.
+`GET /`, `/demo`, `/healthz`, `/v1/llms`. `POST /v1/route`. Binds `127.0.0.1`. The body must not contain keys.
 
-## Validation locale
+## Local validation
 
 ```bash
 uv run jev-model benchmark
 ```
 
-Jeu annoté dans `benchmarks/annotated_tasks.json`. C'est une baseline
-locale, pas un essai JEV réel.
+Annotated set in `benchmarks/annotated_tasks.json`. This is a local baseline, not a live JEV trial.
 
-## Limites
+## Limits
 
-Le tri local est déterministe (qualité, coût, latence, plus un bonus
-lexical). Le scope isole des listes, ce n'est pas une auth. Un seul
-saut de repli. Pas de génération de texte utilisateur. Pas de store,
-pas de PyPI pour l'instant.
+Local ranking is deterministic (quality, cost, latency, plus a lexical bonus). Scope isolates lists, it is not auth. One fallback hop. No user-text generation. No store, no PyPI yet.
 
-`docs/vision.md` est une cible longue, pas le contrat actuel.
+`docs/vision.md` is a long-term target, not the current contract.

@@ -1,0 +1,8 @@
+{
+  "name": "jev-model-router-preview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs"
+  }
+}

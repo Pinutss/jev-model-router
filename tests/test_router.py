@@ -104,6 +104,24 @@ def test_local_demo_no_keys() -> None:
     assert "api_key" not in result.selected.to_dict()
 
 
+def test_explicit_models_ignore_global_catalog() -> None:
+    result = ModelRouter(provider="local").route(
+        task="Summarize this meeting and draft a follow-up email",
+        models=DEFAULT_MODELS,
+        prefer="cheapest",
+        scope="demo",
+    )
+    seen: set[str] = set()
+    if result.selected:
+        seen.add(result.selected.id)
+    if result.fallback:
+        seen.add(result.fallback.id)
+    seen.update(item.id for item in result.alternatives)
+    seen.update(item.id for item in result.rejected)
+    assert seen
+    assert all(item_id.startswith("demo-") for item_id in seen)
+
+
 def test_missing_key_when_jev(monkeypatch) -> None:
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     settings = Settings(

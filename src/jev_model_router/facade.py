@@ -143,10 +143,10 @@ class ModelRouter:
         if models is not None:
             reject_secret_fields(models, where="modele")
         incoming = [ModelProfile.from_mapping(item) for item in (models or ())]
-        catalog = list(DEFAULT_MODELS) + catalog_profiles()
-        profiles = merge_models(catalog, incoming) if incoming else catalog
-        if incoming and not catalog:
+        if incoming:
             profiles = incoming
+        else:
+            profiles = merge_models(catalog_profiles(), list(DEFAULT_MODELS))
         clean_task = redact_text(task) if self.settings.redact_secrets else task
         if self.settings.redact_secrets:
             profiles = [redact_model(item) for item in profiles]

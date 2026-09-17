@@ -159,7 +159,7 @@ def create_server(settings: Settings | None = None) -> ThreadingHTTPServer:
 def serve(settings: Settings | None = None) -> None:
     server = create_server(settings)
     host, port = server.server_address[:2]
-    print(f"jev-model-router sur http://{host}:{port}", flush=True)
+    print(f"jev-model-router on http://{host}:{port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
