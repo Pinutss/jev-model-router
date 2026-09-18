@@ -53,8 +53,6 @@ If you pass `models` to `route()`, that list is the only catalog used. If you om
 uv run jev-model llms
 ```
 
-JSON example: `examples/models.json`.
-
 ## Hermes and OpenClaw
 
 Yes, locally. The MCP process does not need JEV or a gateway:
@@ -91,8 +89,6 @@ mcp_servers:
   }
 }
 ```
-
-Copy-ready examples: `examples/hermes.yaml`, `examples/openclaw.json`.
 
 ## Python
 

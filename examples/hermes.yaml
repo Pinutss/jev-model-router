@@ -1,7 +1,0 @@
-# Merge into ~/.hermes/config.yaml
-mcp_servers:
-  jev-model:
-    command: uv
-    args: ["run", "--directory", "/path/to/jev-model-router", "jev-model", "mcp"]
-    env:
-      JEV_PROVIDER: local

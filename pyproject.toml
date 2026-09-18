@@ -16,7 +16,7 @@ classifiers = [
 jev-model = "jev_model_router.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.8"]
+dev = ["ruff>=0.8"]
 
 [build-system]
 requires = ["hatchling"]
@@ -27,10 +27,6 @@ packages = ["src/jev_model_router"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/jev_model_router/api/demo.html" = "jev_model_router/api/demo.html"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
