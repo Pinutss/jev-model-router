@@ -1,0 +1,37 @@
+{
+  "name": "jev-model-router",
+  "displayName": "JEV Model Router",
+  "version": "0.1.0",
+  "description": "Routes a task to an LLM under quality, cost, and latency constraints.",
+  "author": {
+    "name": "Pinuts",
+    "url": "https://github.com/Pinutss"
+  },
+  "homepage": "https://github.com/Pinutss/jev-model-router",
+  "repository": "https://github.com/Pinutss/jev-model-router",
+  "license": "MIT",
+  "keywords": [
+    "model-router",
+    "llm",
+    "routing",
+    "mcp",
+    "jev"
+  ],
+  "logo": "assets/logo.svg",
+  "category": "models",
+  "mcpServers": {
+    "jev-model": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "${CURSOR_PLUGIN_ROOT}",
+        "jev-model",
+        "mcp"
+      ],
+      "env": {
+        "JEV_PROVIDER": "local"
+      }
+    }
+  }
+}

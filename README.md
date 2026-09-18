@@ -53,6 +53,24 @@ If you pass `models` to `route()`, that list is the only catalog used. If you om
 uv run jev-model llms
 ```
 
+## Cursor and Hermes plugin
+
+This repository is an [Agent Plugin](https://agent-plugins.org/). Cursor and Hermes can install it directly.
+
+**Hermes**
+
+```bash
+hermes plugins install Pinutss/jev-model-router --enable
+```
+
+**Cursor**
+
+Install from the [JEV plugins marketplace](https://github.com/Pinutss/jev-plugins), or copy this folder to `~/.cursor/plugins/local/jev-model-router`.
+
+One tool: `model_route`. Pass `task` and optionally `models`. Keys stay in the process environment, not in the call.
+
+Requires [uv](https://docs.astral.sh/uv/). `JEV_PROVIDER` defaults to `local`.
+
 ## Hermes and OpenClaw
 
 Yes, locally. The MCP process does not need JEV or a gateway:

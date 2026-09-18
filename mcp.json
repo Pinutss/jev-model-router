@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "jev-model": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "${PLUGIN_ROOT}",
+        "jev-model",
+        "mcp"
+      ],
+      "cwd": "${PLUGIN_ROOT}",
+      "env": {
+        "JEV_PROVIDER": "local"
+      }
+    }
+  }
+}

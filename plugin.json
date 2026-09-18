@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "jev-model-router",
+  "version": "0.1.0",
+  "description": "Routes a task to an LLM under quality, cost, and latency constraints.",
+  "author": {
+    "name": "Pinuts",
+    "url": "https://github.com/Pinutss"
+  },
+  "homepage": "https://github.com/Pinutss/jev-model-router",
+  "repository": "https://github.com/Pinutss/jev-model-router",
+  "license": "MIT",
+  "keywords": [
+    "model-router",
+    "llm",
+    "routing",
+    "mcp",
+    "jev"
+  ]
+}
