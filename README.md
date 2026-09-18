@@ -49,6 +49,8 @@ If you pass `models` to `route()`, that list is the only catalog used. If you om
 
 `load_catalog()` merges presets, `JEV_MODELS_FILE`, and `JEV_LLM_<NAME>_*` overlays. `GET /v1/llms` and `jev-model llms` expose the public catalog (`has_key`, never the raw key).
 
+Vendor keys are read only from the process environment, and each key is sent only to its own vendor: `OPENROUTER_API_KEY` → OpenRouter, `OPENAI_API_KEY` → OpenAI, `GROQ_API_KEY` → Groq, `TOGETHER_API_KEY` → Together, `FIREWORKS_API_KEY` → Fireworks, `MISTRAL_API_KEY` → Mistral, optional `OLLAMA_API_KEY` → local Ollama. A custom endpoint is discovered by scanning env for `JEV_LLM_<NAME>_BASE_URL` (plus `JEV_LLM_<NAME>_API_KEY` / `JEV_LLM_<NAME>_MODELS`). The key for that name is used only against that base URL.
+
 ```bash
 uv run jev-model llms
 ```
@@ -124,7 +126,7 @@ print(result.decision, result.selected.id if result.selected else result.abstain
 
 ## JEV + gateway (optional)
 
-If you wire the cloud later, two keys are enough: `JEV_API_KEY` / `JEV_BASE_URL`, and your gateway. If `GATEWAY_*` is incomplete, the multi-LLM catalog resolves the judge (`OPENROUTER_API_KEY`, `OPENAI_API_KEY`, and similar).
+If you wire the cloud later, two keys are enough: `JEV_API_KEY` / `JEV_BASE_URL`, and your gateway. If `GATEWAY_*` is incomplete, the multi-LLM catalog resolves the judge from the vendor keys above. Each vendor key stays scoped to that vendor.
 
 No key in the HTTP or MCP body.
 

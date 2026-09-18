@@ -19,7 +19,7 @@ jev-model = "jev_model_router.cli:main"
 dev = ["ruff>=0.8"]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.26,<1.32"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
